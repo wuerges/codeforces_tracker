@@ -15,7 +15,6 @@ def list_contests(group, name):
     result = r.get(f"https://codeforces.com/group/{group}/contests")
     soup = S(result.text, features="lxml")
 
-    # pattern = r"^group/{group}/contest/\d+$"
     pattern = re.compile(rf"^/group/{group}/contest/\d+$")
     contest_name = re.compile(name, re.I)
 
