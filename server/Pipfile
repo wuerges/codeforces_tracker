@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 flask = "*"
 bs4 = "*"
+waitress = "*"
 
 [dev-packages]
 
