@@ -7,6 +7,9 @@ name = "pypi"
 flask = "*"
 bs4 = "*"
 waitress = "*"
+requests = "*"
+regex = "*"
+lxml = "*"
 
 [dev-packages]
 
