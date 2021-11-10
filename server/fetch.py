@@ -3,7 +3,9 @@ import requests as r
 import regex as re
 import json
 import sys
+import pdfkit
 import csv
+import pickle
 from pprint import pprint
 from bs4 import BeautifulSoup as S
 
@@ -64,24 +66,72 @@ def write_csv(data, file):
         writer.writerows(data)
 
 
+def generate_certificate(nome, matricula, horas, template, folder="outputs"):
+    x = template.replace("$NOME_ESTUDANTE", nome)
+    x = x.replace("$HORAS", str(2*horas))
+    x = x.replace("$MATRICULA", str(matricula))
 
-if __name__ == '__main__':
-    # print("tourist", count_official("tourist"))
+    options = {"enable-local-file-access": ""}
 
-    data = load_csv(sys.argv[1])
+    pdfkit.from_string(x, "{}/{}.pdf".format(folder, nome), options=options)
+
+
+import typer
+
+app = typer.Typer()
+
+
+@app.command()
+def fetch(pattern: str, dump_horas: str): #
+    # pattern = "MaratonUFFS #"
 
     all_registered = Counter()
-    for contest in list_contests("6VlO0zus3c", "MaratonUFFS"):
+    for contest in list_contests("6VlO0zus3c", pattern):
         contest_registered = list_registered(contest)
         lower = [st.lower() for st in contest_registered]
         all_registered.update(lower)
 
-    counts = dict(all_registered)
+    with open(dump_horas, 'wb') as f :
+        counts = dict(all_registered)
+        pickle.dump(counts, f)
 
-    for row in data:
-        row.append(counts.get(row[3].lower()))
+@app.command()
+def show(dump_horas: str): #
+    with open(dump_horas, 'rb') as file:
+        data_horas = pickle.load(file)
+    print(data_horas)
 
-    write_csv(data, sys.argv[2])
+@app.command()
+def certificates(dump_horas: str, dados: str, output_folder:str):
+    with open("template.html", "r") as f:
+        template = f.read()
+    data_dados = load_csv(dados)
+
+    with open(dump_horas, 'rb') as file:
+        data_horas = pickle.load(file)
+
+    for row in data_dados[1:]:
+        [_,matricula,nome,login,horas] = row
+        horas = data_horas.get(login)
+        if horas:
+            generate_certificate(nome, matricula, horas, template, output_folder)
+
+
+if __name__ == '__main__':
+    app()
+    # print("tourist", count_official("tourist"))
+
+
+    
+
+
+
+        # generate_certificate(k, v, template)
+
+    #for row in data:
+    #    row.append(counts.get(row[3].lower()))
+
+    #write_csv(data, sys.argv[1])
 
 
 
